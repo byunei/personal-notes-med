@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Structured EKG Interpretation Helper (Educational)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 1.5rem;
+      line-height: 1.4;
+      max-width: 960px;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .alert {
+      background: #ffe0e0;
+      border: 1px solid #ff8080;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    fieldset {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    legend {
+      font-weight: 600;
+      padding: 0 0.25rem;
+    }
+
+    details.step {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem 0.75rem;
+      margin-bottom: 1rem;
+      background: #fcfcfc;
+    }
+    details.step > summary {
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 0.25rem;
+    }
+    details.step fieldset {
+      border: none;
+      padding: 0.5rem 0 0 0;
+      margin: 0;
+    }
+    details.step legend {
+      margin-bottom: 0.5rem;
+      padding: 0;
+    }
+
+    details.substep {
+      margin-bottom: 0.75rem;
+    }
+    details.substep > summary {
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.98rem;
+      margin-bottom: 0.25rem;
+    }
+
+    details.helper > summary {
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 0.25rem;
+    }
+
+    .form-row {
+      margin-bottom: 0.75rem;
+    }
+    .form-row > label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .inline-options label {
+      display: inline-block;
+      margin-right: 1rem;
+      font-weight: normal;
+    }
+    input[type="number"] {
+      width: 7rem;
+    }
+    select {
+      min-width: 12rem;
+    }
+    #summary, #results {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    #results section.finding {
+      margin-bottom: 1rem;
+    }
+    #results h3 {
+      margin-bottom: 0.25rem;
+    }
+    small.muted {
+      color: #666;
+      display: block;
+      margin-top: 0.25rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>EKG Interpretation Data Structure Sandbox</h1>
+  <div class="alert">
+    <strong>Educational use only:</strong>
+    This page encodes lecture-based associations between EKG waveform features and compatible etiologies.
+    It is <em>not</em> a diagnostic tool and must not be used for clinical decision-making or patient care.
+  </div>
+
+  <form id="ekgForm">
+    <!-- STEP 1 -->
+    <details class="step" open>
+      <summary>Step 1 – Assess the Rhythm</summary>
+      <fieldset>
+        <legend>Rhythm &amp; Rate</legend>
+
+        <!-- 1a. Measure the rate -->
+        <details class="substep" open>
+          <summary>a. Measure the rate</summary>
+
+          <div class="form-row">
+            <label for="patientAge">Patient age (years)</label>
+            <input type="number" id="patientAge" min="0" max="120" step="1">
+          </div>
+
+          <div class="form-row">
+            <label for="heartRate">Heart rate (bpm)</label>
+            <input type="number" id="heartRate" min="0" max="300" step="1">
+            <small class="muted">For adults, this tool uses a resting "normal" range of 50–90 bpm (from the lecture).</small>
+          </div>
+
+          <div class="form-row">
+            <label>Optional rate calculator (for regular rhythms)</label>
+            <div>
+              RR interval:
+              <input type="number" id="rrMs" min="200" max="3000" step="10" placeholder="e.g. 800"> ms
+              &nbsp;|&nbsp;
+              Large (0.2 s) boxes between R waves:
+              <input type="number" id="bigBoxes" min="1" max="10" step="1" placeholder="e.g. 4">
+              &nbsp;|&nbsp;
+              Small (0.04 s) boxes:
+              <input type="number" id="smallBoxes" min="1" max="300" step="1" placeholder="e.g. 20">
+              &nbsp;
+              <button type="button" id="rateCalcBtn">Estimate heart rate</button>
+            </div>
+            <small class="muted">
+              Shortcuts for regular rhythms:
+              HR ≈ 300 / (# large boxes), HR ≈ 1500 / (# small boxes), or HR ≈ 60,000 / RR(ms).
+            </small>
+          </div>
+
+          <details class="helper">
+            <summary>How to decide if the rate is normal, tachycardic, or bradycardic?</summary>
+            <ul>
+              <li>Adult resting range here: 50–90 bpm.</li>
+              <li>&lt; 50 bpm → bradycardic. &gt; 90 bpm → tachycardic.</li>
+              <li>Maximum predicted sinus rate ≈ 220 − age (in years). Rates above this are unlikely to be sinus.</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 1b. Regularity -->
+        <details class="substep">
+          <summary>b. Determine if rhythm is regular, regularly irregular, or irregularly irregular</summary>
+
+          <div class="form-row">
+            <label>Rhythm regularity</label>
+            <div class="inline-options">
+              <label><input type="radio" name="rhythmRegularity" value="regular"> Regular</label>
+              <label><input type="radio" name="rhythmRegularity" value="regularly_irregular"> Regularly irregular</label>
+              <label><input type="radio" name="rhythmRegularity" value="irregularly_irregular"> Irregularly irregular</label>
+            </div>
+          </div>
+
+          <details class="helper">
+            <summary>How to recognize these patterns?</summary>
+            <ul>
+              <li><strong>Regular:</strong> RR intervals essentially constant.</li>
+              <li><strong>Regularly irregular:</strong> RR intervals vary, but in a repeating pattern
+                  (e.g. bigeminy, Wenckebach, 2:1 then 4:1 flutter).</li>
+              <li><strong>Irregularly irregular:</strong> No repeating pattern to RR intervals
+                  (classic: atrial fibrillation, MAT).</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 1c. QRS narrow vs wide -->
+        <details class="substep">
+          <summary>c. Determine if QRS complex is narrow or wide</summary>
+
+          <div class="form-row">
+            <label for="qrsWidth">QRS width</label>
+            <select id="qrsWidth">
+              <option value="narrow">&lt; 120 ms (narrow)</option>
+              <option value="wide">&ge; 120 ms (wide)</option>
+            </select>
+          </div>
+
+          <details class="helper">
+            <summary>How to decide?</summary>
+            <ul>
+              <li>Each small box = 40 ms; 3 small boxes = 120 ms.</li>
+              <li>Count QRS width in small boxes: ≥ 3 small boxes → “wide” (&ge; 120 ms).</li>
+              <li>Narrow QRS suggests supraventricular origin through normal His–Purkinje system.</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 1d. Atrial activity -->
+        <details class="substep">
+          <summary>d. Evaluate the atrial activity</summary>
+
+          <div class="form-row">
+            <label for="pWaves">Atrial activity</label>
+            <select id="pWaves">
+              <option value="unknown">(not specified)</option>
+              <option value="sinus">Sinus P waves (up in I, down in aVR)</option>
+              <option value="ectopic">Non-sinus P waves (ectopic atrial)</option>
+              <option value="fibrillation_waves">No discrete P waves; fibrillation waves</option>
+              <option value="flutter_waves">No discrete P waves; flutter (saw-tooth) waves</option>
+              <option value="none">No obvious atrial activity</option>
+            </select>
+          </div>
+
+          <details class="helper">
+            <summary>How to think about P waves?</summary>
+            <ul>
+              <li><strong>Sinus P:</strong> upright in lead I, inverted in aVR.</li>
+              <li><strong>Ectopic atrial:</strong> P polarity not matching sinus pattern → origin elsewhere.</li>
+              <li><strong>Fibrillation waves:</strong> fine, irregular baseline without distinct P’s.</li>
+              <li><strong>Flutter waves:</strong> saw-tooth, best in inferior leads and/or V1.</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 1e. AV relationship -->
+        <details class="substep">
+          <summary>e. Identify the relationship between atrial &amp; ventricular activity</summary>
+
+          <div class="form-row">
+            <label for="avRelationship">Atrial–ventricular relationship</label>
+            <select id="avRelationship">
+              <option value="unknown">(not specified)</option>
+              <option value="normal_pr_1to1">1:1 with normal PR (120–200 ms)</option>
+              <option value="first_degree_block">1:1 with prolonged PR (&gt; 200 ms, 1st degree AV block)</option>
+              <option value="mobitz_I">Progressive PR lengthening with dropped beats (2nd degree AV block type I / Wenckebach)</option>
+              <option value="mobitz_II">Fixed PR with intermittently dropped beats (2nd degree AV block type II)</option>
+              <option value="third_degree">Complete AV dissociation (3rd degree / complete heart block)</option>
+              <option value="retrograde_p">Retrograde P waves after QRS (e.g. orthodromic AVRT)</option>
+              <option value="other">Other / unclear</option>
+            </select>
+          </div>
+
+          <details class="helper">
+            <summary>Key PR / AV patterns</summary>
+            <ul>
+              <li><strong>Normal PR:</strong> 120–200 ms (3–5 small boxes).</li>
+              <li><strong>1st degree block:</strong> fixed PR &gt; 200 ms.</li>
+              <li><strong>Mobitz I (Wenckebach):</strong> PR progressively lengthens until a beat drops.</li>
+              <li><strong>Mobitz II:</strong> fixed PR with sudden dropped QRS.</li>
+              <li><strong>3rd degree block:</strong> P–QRS dissociation; atria and ventricles march independently.</li>
+              <li><strong>Retrograde P:</strong> inverted P after QRS in some SVTs (e.g. orthodromic AVRT).</li>
+            </ul>
+          </details>
+        </details>
+      </fieldset>
+    </details>
+
+    <!-- STEP 2 -->
+    <details class="step">
+      <summary>Step 2 – Assess the QRS Axis and Morphology</summary>
+      <fieldset>
+        <legend>Axis &amp; QRS Morphology</legend>
+
+        <!-- 2a. Axis -->
+        <details class="substep">
+          <summary>a. Determine the QRS axis</summary>
+
+          <div class="form-row">
+            <label>Frontal QRS axis</label>
+            <div class="inline-options">
+              <label><input type="radio" name="axis" value="normal" checked> Normal (−30° to +90°)</label>
+              <label><input type="radio" name="axis" value="LAD"> Left axis deviation (LAD)</label>
+              <label><input type="radio" name="axis" value="RAD"> Right axis deviation (RAD)</label>
+              <label><input type="radio" name="axis" value="extreme"> Extreme / right superior axis</label>
+            </div>
+          </div>
+
+          <details class="helper">
+            <summary>Quick axis-by-quadrant method</summary>
+            <ul>
+              <li>Look at leads I and aVF (or II).</li>
+              <li><strong>Normal axis:</strong> QRS positive in I and aVF.</li>
+              <li><strong>LAD:</strong> positive in I, negative in aVF (and more negative than −30°).</li>
+              <li><strong>RAD:</strong> negative in I, positive in aVF.</li>
+              <li><strong>Extreme axis:</strong> negative in both I and aVF.</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 2b. QRS morphology -->
+        <details class="substep">
+          <summary>b. Examine the QRS morphology</summary>
+
+          <div class="form-row">
+            <label><input type="checkbox" id="pathologicQ"> Pathologic Q waves present</label>
+            <small class="muted">
+              Typical definition: Q wave &gt; 40 ms wide, &gt; 2 mm deep, or &gt; 25% of QRS height in ≥ 2 contiguous leads
+              (excluding aVR and often III alone).
+            </small>
+          </div>
+
+          <div class="form-row">
+            <label>Chamber hypertrophy</label>
+            <div class="inline-options">
+              <label><input type="checkbox" id="rvh"> Evidence of RVH</label>
+              <label><input type="checkbox" id="lvh"> Evidence of LVH</label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="bundleBranch">Intraventricular conduction pattern (if wide QRS)</label>
+            <select id="bundleBranch">
+              <option value="none">None / narrow QRS / unspecified</option>
+              <option value="RBBB">Right bundle branch block (RBBB)</option>
+              <option value="LBBB">Left bundle branch block (LBBB)</option>
+              <option value="IVCD">Non-specific intraventricular conduction delay (IVCD)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label>Other QRS morphology findings</label>
+            <div class="inline-options">
+              <label><input type="checkbox" id="lowVoltage"> Low voltage</label>
+              <label><input type="checkbox" id="electricalAlternans"> Electrical alternans</label>
+              <label><input type="checkbox" id="deltaWave"> Delta waves (pre-excitation)</label>
+              <label><input type="checkbox" id="pacedRhythm"> Paced rhythm</label>
+              <label><input type="checkbox" id="ventricularOrigin"> Ventricular origin of rhythm (e.g. VT)</label>
+            </div>
+          </div>
+
+          <details class="helper">
+            <summary>What to look for in QRS morphology?</summary>
+            <ul>
+              <li><strong>Pathologic Q waves:</strong> suggest prior or current MI.</li>
+              <li><strong>RVH/LVH:</strong> tall R in V1–V2 (RVH) or V5–V6 (LVH), often with “strain” ST/T changes.</li>
+              <li><strong>RBBB:</strong> rsR′ in V1, wide S in I/V6.</li>
+              <li><strong>LBBB:</strong> deep QS in V1, broad monophasic R in I/V6.</li>
+              <li><strong>Low voltage:</strong> small-amplitude QRS in all leads (think obesity, effusions, COPD, infiltrative disease, hypothyroidism).</li>
+              <li><strong>Electrical alternans:</strong> beat-to-beat variation in QRS amplitude/axis (often large pericardial effusion).</li>
+              <li><strong>Delta wave:</strong> slurred initial upstroke of QRS with short PR → pre-excitation (WPW).</li>
+            </ul>
+          </details>
+        </details>
+      </fieldset>
+    </details>
+
+    <!-- STEP 3 -->
+    <details class="step">
+      <summary>Step 3 – Assess the ST Segments, T Waves, and QT Interval</summary>
+      <fieldset>
+        <legend>ST / T / QT</legend>
+
+        <!-- 3a. ST segments -->
+        <details class="substep">
+          <summary>a. Examine the ST segments</summary>
+
+          <div class="form-row">
+            <label for="stSegment">ST segments</label>
+            <select id="stSegment">
+              <option value="normal">Normal / non-diagnostic</option>
+              <option value="elevation">ST elevation in ≥ 2 contiguous leads</option>
+              <option value="depression">ST depression</option>
+              <option value="both">Both elevation and depression (different leads)</option>
+            </select>
+            <div class="inline-options">
+              <label><input type="checkbox" id="stElevationV1V3">
+                If ST elevation present, is it limited mainly to V1–V3?
+              </label>
+            </div>
+          </div>
+
+          <details class="helper">
+            <summary>How to think about ST changes?</summary>
+            <ul>
+              <li><strong>ST elevation:</strong> usually significant if ≥ 1 mm in ≥ 2 anatomically contiguous leads.</li>
+              <li><strong>Common etiologies:</strong> STEMI, LBBB, LVH, early repolarization, pericarditis, LV aneurysm, vasospasm, hyperkalemia, hypothermia, Brugada, Takotsubo.</li>
+              <li><strong>ST depression:</strong> ischemia/infarction, tachycardia, digoxin, hypokalemia, or “secondary” to BBB/ventricular hypertrophy.</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 3b. T waves -->
+        <details class="substep">
+          <summary>b. Examine the T waves</summary>
+
+          <div class="form-row">
+            <label for="tWave">T waves</label>
+            <select id="tWave">
+              <option value="normal">Normal / physiologic variants only</option>
+              <option value="inverted">Pathologic T wave inversion (beyond isolated III/aVR/V1)</option>
+              <option value="peaked">Peaked / very tall symmetric T waves</option>
+            </select>
+          </div>
+
+          <details class="helper">
+            <summary>Key ideas about T waves</summary>
+            <ul>
+              <li><strong>Inverted T:</strong> similar etiologies to ST depression: ischemia, tachycardia, digoxin, hypokalemia, BBB, RVH/LVH.</li>
+              <li>Other causes: intracranial hemorrhage, late pericarditis, hypothyroidism.</li>
+              <li><strong>Peaked T:</strong> classically hyperkalemia; very early MI can cause “hyperacute” T waves.</li>
+              <li>Isolated inversion in III, aVR, V1 can be normal.</li>
+            </ul>
+          </details>
+        </details>
+
+        <!-- 3c. QT interval -->
+        <details class="substep">
+          <summary>c. Measure the QT interval and correct for HR</summary>
+
+          <div class="form-row">
+            <label for="qtCategory">QT interval (QTc)</label>
+            <select id="qtCategory">
+              <option value="unknown">(not specified)</option>
+              <option value="normal">Normal</option>
+              <option value="prolonged">Prolonged QTc</option>
+              <option value="short">Short QTc</option>
+            </select>
+            <input type="number" id="qtcValue" min="200" max="700" step="1" placeholder="QTc in ms (optional)">
+            <small class="muted">Rule of thumb: QT &lt; ½ RR interval. Very short QTc &lt; ~350 ms is pathologic.</small>
+          </div>
+
+          <div class="form-row">
+            <label>Optional QTc calculator (Bazett)</label>
+            <div>
+              Measured QT interval:
+              <input type="number" id="qtMs" min="200" max="600" step="10" placeholder="e.g. 400"> ms
+              &nbsp;|&nbsp;
+              RR interval:
+              <input type="number" id="rrMsForQt" min="300" max="3000" step="10" placeholder="e.g. 1000"> ms
+              &nbsp;
+              <button type="button" id="qtCalcBtn">Calculate QTc</button>
+            </div>
+            <small class="muted">
+              Bazett formula: QTc = QT / √RR, where QT in ms and RR in seconds.
+              If RR is left blank, the calculator will use the heart rate above (RR ≈ 60 / HR).
+            </small>
+          </div>
+
+          <details class="helper">
+            <summary>Interpreting QTc</summary>
+            <ul>
+              <li><strong>Prolonged QTc:</strong> congenital long QT, many medications (class Ia/Ic/III antiarrhythmics, antipsychotics, antidepressants, antiemetics, quinolones, macrolides), hypocalcemia, hypothyroidism, hypothermia.</li>
+              <li>Hypokalemia itself mainly makes U waves prominent and is dangerous when superimposed on pre-existing QT prolongation.</li>
+              <li><strong>Short QTc (&lt; ~350 ms):</strong> hypercalcemia, congenital short QT syndrome.</li>
+              <li>Both prolonged and short QT syndromes are associated with increased risk of malignant arrhythmias.</li>
+            </ul>
+          </details>
+        </details>
+      </fieldset>
+    </details>
+
+    <button type="submit">Analyze EKG</button>
+  </form>
+
+  <h2>Structured summary</h2>
+  <div id="summary">
+    <p>Fill in the fields above and click <em>Analyze EKG</em> to see a structured summary.</p>
+  </div>
+
+  <h2>Compatible etiologies based on lecture rules</h2>
+  <div id="results">
+    <p>No rule-based associations yet.</p>
+  </div>
+
+  <script>
+    // Small helper to escape HTML.
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function prettyRhythm(value) {
+      if (value === 'regular') return 'Regular';
+      if (value === 'regularly_irregular') return 'Regularly irregular';
+      if (value === 'irregularly_irregular') return 'Irregularly irregular';
+      return value || 'Not specified';
+    }
+
+    // Finding → compatible causes based on the lecture.
+    var FINDING_RULES = [
+      {
+        id: 'radAxis',
+        title: 'Right axis deviation (RAD)',
+        when: function (d) { return d.axis === 'RAD'; },
+        causes: [
+          'Normal variant in children and young, thin adults',
+          'Right ventricular hypertrophy (RVH)',
+          'Chronic obstructive pulmonary disease (COPD) without RVH',
+          'Left posterior fascicular block',
+          'Lateral wall myocardial infarction',
+          'Ectopic ventricular rhythm',
+          'Wolff–Parkinson–White (WPW) pattern'
+        ]
+      },
+      {
+        id: 'ladAxis',
+        title: 'Left axis deviation (LAD)',
+        when: function (d) { return d.axis === 'LAD'; },
+        causes: [
+          'Normal variant in older, obese adults',
+          'Left ventricular hypertrophy (LVH)',
+          'Elevated diaphragm (e.g. pregnancy, marked ascites)',
+          'Left anterior fascicular block',
+          'Inferior wall myocardial infarction',
+          'Ectopic ventricular rhythm',
+          'Wolff–Parkinson–White (WPW) pattern'
+        ]
+      },
+      {
+        id: 'wideQrsComplex',
+        title: 'Wide QRS complex (≥ 120 ms)',
+        when: function (d) { return d.qrsWidth === 'wide'; },
+        causes: [
+          'Bundle branch block (RBBB or LBBB)',
+          'Ventricular origin of rhythm (e.g. ventricular tachycardia)',
+          'Left ventricular hypertrophy (LVH)',
+          'Pacemaker / paced rhythm',
+          'Class Ia or Ic antiarrhythmic medications',
+          'Wolff–Parkinson–White (WPW) pattern',
+          'Profound hyperkalemia'
+        ]
+      },
+      {
+        id: 'lowVoltage',
+        title: 'Low QRS voltage',
+        when: function (d) { return d.lowVoltage; },
+        causes: [
+          'Obesity (increased adipose tissue between heart and electrodes)',
+          'Chronic obstructive pulmonary disease (COPD) with hyperinflation',
+          'Pleural effusion',
+          'Pericardial effusion',
+          'Myocardial infiltration (e.g. amyloidosis, sarcoidosis)',
+          'Hypothyroidism'
+        ]
+      },
+      {
+        id: 'electricalAlternans',
+        title: 'Electrical alternans',
+        when: function (d) { return d.electricalAlternans; },
+        causes: [
+          'Usually indicates a large pericardial effusion (the heart “swinging” in fluid)',
+          'May or may not be associated with pericardial tamponade'
+        ]
+      },
+      {
+        id: 'deltaWave',
+        title: 'Delta waves / pre-excitation',
+        when: function (d) { return d.deltaWave; },
+        causes: [
+          'Accessory pathway connecting atria and ventricles (bypass tract)',
+          'Wolff–Parkinson–White (WPW) pattern',
+          'When associated with paroxysmal tachycardias: Wolff–Parkinson–White (WPW) syndrome'
+        ]
+      },
+      {
+        id: 'pathologicQ',
+        title: 'Pathologic Q waves',
+        when: function (d) { return d.pathologicQ; },
+        causes: [
+          'Prior transmural myocardial infarction (old MI)',
+          'Sometimes an acute or subacute MI (depending on clinical context and timing)'
+        ]
+      },
+      {
+        id: 'stElevationGeneric',
+        title: 'ST elevation in ≥ 2 contiguous leads',
+        when: function (d) { return d.stSegment === 'elevation' || d.stSegment === 'both'; },
+        causes: [
+          'ST elevation myocardial infarction (STEMI)',
+          'Left bundle branch block (often most obvious in V1–V3)',
+          'Left ventricular hypertrophy (LVH) with repolarization changes',
+          'Normal variant / “early repolarization” (often V1–V3)',
+          'Pericarditis',
+          'Left ventricular aneurysm',
+          'Coronary vasospasm (Prinzmetal angina)',
+          'Severe hyperkalemia',
+          'Hypothermia',
+          'Brugada syndrome (inherited sodium channelopathy)',
+          'Takotsubo cardiomyopathy (“broken heart syndrome”)'
+        ]
+      },
+      {
+        id: 'stElevationV1V3',
+        title: 'ST elevation mainly limited to V1–V3',
+        when: function (d) {
+          return (d.stSegment === 'elevation' || d.stSegment === 'both') && d.stElevationV1V3;
+        },
+        causes: [
+          'Left bundle branch block (LBBB)',
+          'Left ventricular hypertrophy (LVH)',
+          'Normal variant / “early repolarization” pattern'
+        ]
+      },
+      {
+        id: 'stDepressionPrimary',
+        title: 'ST depression – primary repolarization abnormality',
+        when: function (d) {
+          return (d.stSegment === 'depression' || d.stSegment === 'both') &&
+                 !(d.hasBBBOrIVCD || d.hasVentricularHypertrophy);
+        },
+        causes: [
+          'Myocardial ischemia or infarction',
+          'Tachycardia (even without ischemia)',
+          'Digoxin effect (even at therapeutic levels)',
+          'Hypokalemia'
+        ]
+      },
+      {
+        id: 'stDepressionSecondary',
+        title: 'ST depression – secondary to abnormal depolarization',
+        when: function (d) {
+          return (d.stSegment === 'depression' || d.stSegment === 'both') &&
+                 (d.hasBBBOrIVCD || d.hasVentricularHypertrophy);
+        },
+        causes: [
+          'Right bundle branch block (RBBB)',
+          'Left bundle branch block (LBBB)',
+          'Non-specific intraventricular conduction delay (IVCD)',
+          'Right ventricular hypertrophy (RVH) – “strain pattern”',
+          'Left ventricular hypertrophy (LVH) – “strain pattern”'
+        ]
+      },
+      {
+        id: 'tWaveInversionPrimarySecondary',
+        title: 'Pathologic T wave inversion',
+        when: function (d) { return d.tWave === 'inverted'; },
+        causes: [
+          'Myocardial ischemia or infarction',
+          'Tachycardia',
+          'Digoxin effect',
+          'Hypokalemia',
+          'Right or left bundle branch block (RBBB / LBBB)',
+          'Intraventricular conduction delay (IVCD)',
+          'Right or left ventricular hypertrophy with “strain pattern”'
+        ]
+      },
+      {
+        id: 'tWaveInversionOther',
+        title: 'Additional etiologies of inverted T waves',
+        when: function (d) { return d.tWave === 'inverted'; },
+        causes: [
+          'Intracranial hemorrhage',
+          'Pericarditis (later stages)',
+          'Hypothyroidism'
+        ]
+      },
+      {
+        id: 'peakedT',
+        title: 'Peaked / very tall T waves',
+        when: function (d) { return d.tWave === 'peaked'; },
+        causes: [
+          'Hyperkalemia (classic cause)',
+          'Very early ST elevation MI (“hyperacute” T waves)'
+        ]
+      },
+      {
+        id: 'prolongedQt',
+        title: 'Prolonged QT interval (QTc)',
+        when: function (d) { return d.qtCategory === 'prolonged' || (d.qtc && d.qtc > 460); },
+        causes: [
+          'Congenital long QT syndrome',
+          'Medications – e.g. class Ia, Ic, and III antiarrhythmics, antipsychotics, antidepressants, antiemetics, quinolones, macrolides',
+          'Hypocalcemia',
+          'Hypothyroidism',
+          'Hypothermia',
+          'Apparent QT prolongation from fusion of prominent U waves with T waves in hypokalemia (actually QU, not pure QT)'
+        ]
+      },
+      {
+        id: 'shortQt',
+        title: 'Abnormally short QT interval (QTc < ~350 ms)',
+        when: function (d) {
+          return d.qtCategory === 'short' || (d.qtc && d.qtc < 350);
+        },
+        causes: [
+          'Hypercalcemia',
+          'Congenital short QT syndrome'
+        ]
+      },
+      {
+        id: 'irregularlyIrregularBradyNormal',
+        title: 'Irregularly irregular rhythm (bradycardic or normal rate)',
+        when: function (d) {
+          return d.rhythm === 'irregularly_irregular' &&
+                 (d.rateCategory === 'brady' || d.rateCategory === 'normal' || !d.rateCategory);
+        },
+        causes: [
+          'Atrial fibrillation',
+          'Sinus arrhythmia (often due to sinus node dysfunction)',
+          'Atrial flutter with variable AV block (less common)'
+        ]
+      },
+      {
+        id: 'irregularlyIrregularTachy',
+        title: 'Irregularly irregular tachycardia',
+        when: function (d) {
+          return d.rhythm === 'irregularly_irregular' && d.rateCategory === 'tachy';
+        },
+        causes: [
+          'Atrial fibrillation with rapid ventricular response',
+          'Multifocal atrial tachycardia (MAT)',
+          'Atrial flutter with variable AV block'
+        ]
+      },
+      {
+        id: 'regularlyIrregular',
+        title: 'Regularly irregular rhythm',
+        when: function (d) { return d.rhythm === 'regularly_irregular'; },
+        causes: [
+          '2nd degree AV block type I (Wenckebach)',
+          'Atrial or ventricular bigeminy or trigeminy',
+          'Atrial flutter with alternating 2:1 and 4:1 AV conduction'
+        ]
+      },
+      {
+        id: 'rate140to150',
+        title: 'Rate 140–150 bpm',
+        when: function (d) {
+          return d.heartRate !== null &&
+                 !isNaN(d.heartRate) &&
+                 d.heartRate >= 140 &&
+                 d.heartRate <= 150;
+        },
+        causes: [
+          'Lecture pearl: in a regular supraventricular tachycardia, a rate around 140–150 bpm suggests possible atrial flutter with 2:1 AV block'
+        ]
+      },
+      {
+        id: 'abovePredictedSinusRate',
+        title: 'Rate above predicted maximum sinus rate',
+        when: function (d) {
+          if (d.age === null || isNaN(d.age) || d.heartRate === null || isNaN(d.heartRate)) return false;
+          var maxSinus = 220 - d.age;
+          return d.heartRate > maxSinus;
+        },
+        causes: [
+          'If heart rate exceeds ~220 − age, the rhythm is very unlikely to be sinus tachycardia',
+          'Consider pathological supraventricular or ventricular tachyarrhythmias'
+        ]
+      }
+    ];
+
+    function collectFormData() {
+      function num(id) {
+        var el = document.getElementById(id);
+        if (!el) return null;
+        var value = el.value.trim();
+        if (!value) return null;
+        var n = Number(value);
+        return isNaN(n) ? null : n;
+      }
+
+      function isChecked(id) {
+        var el = document.getElementById(id);
+        return !!(el && el.checked);
+      }
+
+      function radioValue(name) {
+        var el = document.querySelector('input[name="' + name + '"]:checked');
+        return el ? el.value : null;
+      }
+
+      var d = {};
+      d.age = num('patientAge');
+      d.heartRate = num('heartRate');
+      d.rateCategory = null;
+
+      if (d.heartRate !== null) {
+        if (d.heartRate < 50) d.rateCategory = 'brady';
+        else if (d.heartRate <= 90) d.rateCategory = 'normal';
+        else d.rateCategory = 'tachy';
+      }
+
+      d.rhythm = radioValue('rhythmRegularity');
+      d.qrsWidth = document.getElementById('qrsWidth').value;
+      d.pWaves = document.getElementById('pWaves').value;
+      d.avRelationship = document.getElementById('avRelationship').value;
+
+      d.axis = radioValue('axis');
+
+      d.pathologicQ = isChecked('pathologicQ');
+      d.lvh = isChecked('lvh');
+      d.rvh = isChecked('rvh');
+      d.bundleBranch = document.getElementById('bundleBranch').value;
+
+      d.lowVoltage = isChecked('lowVoltage');
+      d.electricalAlternans = isChecked('electricalAlternans');
+      d.deltaWave = isChecked('deltaWave');
+      d.pacedRhythm = isChecked('pacedRhythm');
+      d.ventricularOrigin = isChecked('ventricularOrigin');
+
+      d.stSegment = document.getElementById('stSegment').value;
+      d.stElevationV1V3 = isChecked('stElevationV1V3');
+      d.tWave = document.getElementById('tWave').value;
+      d.qtCategory = document.getElementById('qtCategory').value;
+      d.qtc = num('qtcValue');
+
+      d.hasBBBOrIVCD = (d.bundleBranch === 'RBBB' || d.bundleBranch === 'LBBB' || d.bundleBranch === 'IVCD');
+      d.hasVentricularHypertrophy = !!(d.lvh || d.rvh);
+
+      return d;
+    }
+
+    function buildSummaryHTML(d) {
+      var lines = [];
+
+      if (d.age !== null) {
+        lines.push('Age: ' + d.age + ' years');
+      }
+
+      if (d.heartRate !== null) {
+        var rateLabel = '';
+        if (d.rateCategory === 'brady') rateLabel = ' (bradycardic: &lt; 50 bpm)';
+        else if (d.rateCategory === 'normal') rateLabel = ' (within 50–90 bpm adult resting range used here)';
+        else if (d.rateCategory === 'tachy') rateLabel = ' (tachycardic: &gt; 90 bpm)';
+        lines.push('Heart rate: ' + d.heartRate + ' bpm' + rateLabel);
+      }
+
+      if (d.rhythm) {
+        lines.push('Rhythm regularity: ' + prettyRhythm(d.rhythm));
+      }
+
+      if (d.qrsWidth) {
+        lines.push('QRS width: ' + (d.qrsWidth === 'narrow' ? 'Narrow (&lt; 120 ms)' : 'Wide (&ge; 120 ms)'));
+      }
+
+      if (d.axis) {
+        var axisLabel = d.axis;
+        if (d.axis === 'normal') axisLabel = 'Normal (−30° to +90°)';
+        else if (d.axis === 'LAD') axisLabel = 'Left axis deviation (LAD)';
+        else if (d.axis === 'RAD') axisLabel = 'Right axis deviation (RAD)';
+        else if (d.axis === 'extreme') axisLabel = 'Extreme / right superior axis';
+        lines.push('Frontal QRS axis: ' + axisLabel);
+      }
+
+      if (d.pathologicQ) {
+        lines.push('Pathologic Q waves: present');
+      }
+
+      if (d.rvh || d.lvh) {
+        var hv = [];
+        if (d.rvh) hv.push('RVH');
+        if (d.lvh) hv.push('LVH');
+        lines.push('Chamber hypertrophy: ' + hv.join(', '));
+      }
+
+      if (d.bundleBranch && d.bundleBranch !== 'none') {
+        lines.push('Intraventricular conduction: ' + d.bundleBranch);
+      }
+
+      if (d.lowVoltage) lines.push('Low QRS voltage: present');
+      if (d.electricalAlternans) lines.push('Electrical alternans: present');
+      if (d.deltaWave) lines.push('Delta waves / pre-excitation: present');
+      if (d.pacedRhythm) lines.push('Paced rhythm: present');
+      if (d.ventricularOrigin) lines.push('Ventricular origin of rhythm: suspected');
+
+      if (d.stSegment && d.stSegment !== 'normal') {
+        var stLabel = '';
+        if (d.stSegment === 'elevation') stLabel = 'ST elevation';
+        else if (d.stSegment === 'depression') stLabel = 'ST depression';
+        else stLabel = 'Both ST elevation and depression (in different leads)';
+        if (d.stElevationV1V3) stLabel += '; elevation mainly in V1–V3';
+        lines.push('ST segments: ' + stLabel);
+      }
+
+      if (d.tWave && d.tWave !== 'normal') {
+        lines.push('T waves: ' + (d.tWave === 'inverted' ? 'Pathologic inversion' : 'Peaked / very tall'));
+      }
+
+      if (d.qtCategory && d.qtCategory !== 'unknown') {
+        var qtText = 'QT interval: ' + d.qtCategory;
+        if (d.qtc !== null) qtText += ' (QTc ≈ ' + d.qtc + ' ms)';
+        lines.push(qtText);
+      } else if (d.qtc !== null) {
+        lines.push('QTc (reported): ' + d.qtc + ' ms');
+      }
+
+      if (!lines.length) {
+        return '<p>No structured data yet. Fill in the form above and click <em>Analyze EKG</em>.</p>';
+      }
+
+      var html = '<ul>';
+      for (var i = 0; i < lines.length; i++) {
+        html += '<li>' + lines[i] + '</li>';
+      }
+      html += '</ul>';
+      return html;
+    }
+
+    function evaluateFindings(d) {
+      var triggered = [];
+      for (var i = 0; i < FINDING_RULES.length; i++) {
+        var rule = FINDING_RULES[i];
+        try {
+          if (rule.when(d)) {
+            triggered.push(rule);
+          }
+        } catch (e) {
+          if (typeof console !== 'undefined' && console.error) {
+            console.error('Error in rule ' + rule.id, e);
+          }
+        }
+      }
+      return triggered;
+    }
+
+    function buildFindingsHTML(findings) {
+      if (!findings.length) {
+        return '<p>No lecture-based causality rules were triggered for this combination of findings. ' +
+               'You can extend the JavaScript <code>FINDING_RULES</code> array to add more logic.</p>';
+      }
+
+      var html = '';
+      for (var i = 0; i < findings.length; i++) {
+        var f = findings[i];
+        html += '<section class="finding">';
+        html += '<h3>' + escapeHtml(f.title) + '</h3>';
+        if (f.note) {
+          html += '<p><em>' + escapeHtml(f.note) + '</em></p>';
+        }
+        if (f.causes && f.causes.length) {
+          html += '<ul>';
+          for (var j = 0; j < f.causes.length; j++) {
+            html += '<li>' + escapeHtml(f.causes[j]) + '</li>';
+          }
+          html += '</ul>';
+        }
+        html += '</section>';
+      }
+      return html;
+    }
+
+    // Extra: calculators
+    function setupRateCalculator() {
+      var btn = document.getElementById('rateCalcBtn');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var rrMsEl = document.getElementById('rrMs');
+        var bigBoxesEl = document.getElementById('bigBoxes');
+        var smallBoxesEl = document.getElementById('smallBoxes');
+        var hrEl = document.getElementById('heartRate');
+
+        var rrMs = rrMsEl && rrMsEl.value.trim() ? Number(rrMsEl.value) : null;
+        var bigBoxes = bigBoxesEl && bigBoxesEl.value.trim() ? Number(bigBoxesEl.value) : null;
+        var smallBoxes = smallBoxesEl && smallBoxesEl.value.trim() ? Number(smallBoxesEl.value) : null;
+
+        var hr = null;
+        if (rrMs && !isNaN(rrMs) && rrMs > 0) {
+          hr = 60000 / rrMs;
+        } else if (bigBoxes && !isNaN(bigBoxes) && bigBoxes > 0) {
+          hr = 300 / bigBoxes;
+        } else if (smallBoxes && !isNaN(smallBoxes) && smallBoxes > 0) {
+          hr = 1500 / smallBoxes;
+        }
+
+        if (hr && !isNaN(hr)) {
+          hrEl.value = Math.round(hr);
+        } else {
+          alert('Enter RR in ms, or the number of large/small boxes between R waves, to estimate heart rate.');
+        }
+      });
+    }
+
+    function setupQtCalculator() {
+      var btn = document.getElementById('qtCalcBtn');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var qtMsEl = document.getElementById('qtMs');
+        var rrMsEl = document.getElementById('rrMsForQt');
+        var hrEl = document.getElementById('heartRate');
+        var qtcEl = document.getElementById('qtcValue');
+        var qtCatEl = document.getElementById('qtCategory');
+
+        var qtMs = qtMsEl && qtMsEl.value.trim() ? Number(qtMsEl.value) : null;
+        var rrMs = rrMsEl && rrMsEl.value.trim() ? Number(rrMsEl.value) : null;
+
+        if (!qtMs || isNaN(qtMs) || qtMs <= 0) {
+          alert('Enter a QT interval (in ms) to calculate QTc.');
+          return;
+        }
+
+        if (!rrMs || isNaN(rrMs) || rrMs <= 0) {
+          // Fall back to HR, if available.
+          var hr = hrEl && hrEl.value.trim() ? Number(hrEl.value) : null;
+          if (!hr || isNaN(hr) || hr <= 0) {
+            alert('Enter RR interval (in ms) or a heart rate to estimate QTc.');
+            return;
+          }
+          var rrSecFromHr = 60 / hr;
+          rrMs = rrSecFromHr * 1000;
+        }
+
+        var rrSec = rrMs / 1000;
+        if (rrSec <= 0) {
+          alert('RR interval must be positive.');
+          return;
+        }
+
+        var qtc = qtMs / Math.sqrt(rrSec); // Bazett
+        var qtcRounded = Math.round(qtc);
+        qtcEl.value = qtcRounded;
+
+        if (qtCatEl) {
+          if (qtc < 350) qtCatEl.value = 'short';
+          else if (qtc > 460) qtCatEl.value = 'prolonged';
+          else qtCatEl.value = 'normal';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('ekgForm');
+      var summaryDiv = document.getElementById('summary');
+      var resultsDiv = document.getElementById('results');
+
+      setupRateCalculator();
+      setupQtCalculator();
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var data = collectFormData();
+        summaryDiv.innerHTML = buildSummaryHTML(data);
+        var findings = evaluateFindings(data);
+        resultsDiv.innerHTML = buildFindingsHTML(findings);
+      });
+    });
+  </script>
+</body>
+</html>
