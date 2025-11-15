@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <title>Structured EKG Interpretation Helper (Educational)</title>
   <style>
@@ -113,8 +113,12 @@
       font-size: 1rem;
       cursor: pointer;
     }
+    #toggle-fold-all, #fold-to-substep {
+      padding: 0.1rem 0.4rem;
+      font-size: 0.8rem;
+    }
   </style>
-</head>
+<script src="Structured%20EKG%20Interpretation%20Helper%20(Educational)_files/prompt.js"></script></head>
 <body>
   <h1>EKG Interpretation Data Structure Sandbox</h1>
   <div class="alert">
@@ -123,15 +127,19 @@
     It is <em>not</em> a diagnostic tool and must not be used for clinical decision-making or patient care.
   </div>
 
+  <button id="toggle-fold-all">Toggle fold all</button>
+  <button id="fold-to-substep">Fold to substep</button>
+
   <form id="ekgForm">
     <!-- STEP 1 -->
-    <details class="step" open>
+    <!-- <details class="step" open=""> -->
+    <details class="step">
       <summary>Step 1 – Assess the Rhythm</summary>
       <fieldset>
-        <legend>Rhythm &amp; Rate</legend>
+        <!-- <legend>Rhythm &amp; Rate</legend> -->
 
         <!-- 1a. Measure the rate -->
-        <details class="substep" open>
+        <details class="substep">
           <summary>a. Measure the rate</summary>
 
           <div class="form-row">
@@ -207,8 +215,8 @@
           <div class="form-row">
             <label for="qrsWidth">QRS width</label>
             <select id="qrsWidth">
-              <option value="narrow">&lt; 120 ms (narrow)</option>
-              <option value="wide">&ge; 120 ms (wide)</option>
+              <option value="narrow" selected="selected">&lt; 120 ms (narrow)</option>
+              <option value="wide">≥ 120 ms (wide)</option>
             </select>
           </div>
 
@@ -216,7 +224,7 @@
             <summary>How to decide?</summary>
             <ul>
               <li>Each small box = 40 ms; 3 small boxes = 120 ms.</li>
-              <li>Count QRS width in small boxes: ≥ 3 small boxes → “wide” (&ge; 120 ms).</li>
+              <li>Count QRS width in small boxes: ≥ 3 small boxes → “wide” (≥ 120 ms).</li>
               <li>Narrow QRS suggests supraventricular origin through normal His–Purkinje system.</li>
             </ul>
           </details>
@@ -229,7 +237,7 @@
           <div class="form-row">
             <label for="pWaves">Atrial activity</label>
             <select id="pWaves">
-              <option value="unknown">(not specified)</option>
+              <option value="unknown" selected="selected">(not specified)</option>
               <option value="sinus">Sinus P waves (up in I, down in aVR)</option>
               <option value="ectopic">Non-sinus P waves (ectopic atrial)</option>
               <option value="fibrillation_waves">No discrete P waves; fibrillation waves</option>
@@ -256,7 +264,7 @@
           <div class="form-row">
             <label for="avRelationship">Atrial–ventricular relationship</label>
             <select id="avRelationship">
-              <option value="unknown">(not specified)</option>
+              <option value="unknown" selected="selected">(not specified)</option>
               <option value="normal_pr_1to1">1:1 with normal PR (120–200 ms)</option>
               <option value="first_degree_block">1:1 with prolonged PR (&gt; 200 ms, 1st degree AV block)</option>
               <option value="mobitz_I">Progressive PR lengthening with dropped beats (2nd degree AV block type I / Wenckebach)</option>
@@ -286,7 +294,7 @@
     <details class="step">
       <summary>Step 2 – Assess the QRS Axis and Morphology</summary>
       <fieldset>
-        <legend>Axis &amp; QRS Morphology</legend>
+        <!-- <legend>Axis &amp; QRS Morphology</legend> -->
 
         <!-- 2a. Axis -->
         <details class="substep">
@@ -295,7 +303,7 @@
           <div class="form-row">
             <label>Frontal QRS axis</label>
             <div class="inline-options">
-              <label><input type="radio" name="axis" value="normal" checked> Normal (−30° to +90°)</label>
+              <label><input type="radio" name="axis" value="normal" checked="checked"> Normal (−30° to +90°)</label>
               <label><input type="radio" name="axis" value="LAD"> Left axis deviation (LAD)</label>
               <label><input type="radio" name="axis" value="RAD"> Right axis deviation (RAD)</label>
               <label><input type="radio" name="axis" value="extreme"> Extreme / right superior axis</label>
@@ -337,7 +345,7 @@
           <div class="form-row">
             <label for="bundleBranch">Intraventricular conduction pattern (if wide QRS)</label>
             <select id="bundleBranch">
-              <option value="none">None / narrow QRS / unspecified</option>
+              <option value="none" selected="selected">None / narrow QRS / unspecified</option>
               <option value="RBBB">Right bundle branch block (RBBB)</option>
               <option value="LBBB">Left bundle branch block (LBBB)</option>
               <option value="IVCD">Non-specific intraventricular conduction delay (IVCD)</option>
@@ -375,7 +383,7 @@
     <details class="step">
       <summary>Step 3 – Assess the ST Segments, T Waves, and QT Interval</summary>
       <fieldset>
-        <legend>ST / T / QT</legend>
+        <!-- <legend>ST / T / QT</legend> -->
 
         <!-- 3a. ST segments -->
         <details class="substep">
@@ -384,7 +392,7 @@
           <div class="form-row">
             <label for="stSegment">ST segments</label>
             <select id="stSegment">
-              <option value="normal">Normal / non-diagnostic</option>
+              <option value="normal" selected="selected">Normal / non-diagnostic</option>
               <option value="elevation">ST elevation in ≥ 2 contiguous leads</option>
               <option value="depression">ST depression</option>
               <option value="both">Both elevation and depression (different leads)</option>
@@ -413,7 +421,7 @@
           <div class="form-row">
             <label for="tWave">T waves</label>
             <select id="tWave">
-              <option value="normal">Normal / physiologic variants only</option>
+              <option value="normal" selected="selected">Normal / physiologic variants only</option>
               <option value="inverted">Pathologic T wave inversion (beyond isolated III/aVR/V1)</option>
               <option value="peaked">Peaked / very tall symmetric T waves</option>
             </select>
@@ -437,7 +445,7 @@
           <div class="form-row">
             <label for="qtCategory">QT interval (QTc)</label>
             <select id="qtCategory">
-              <option value="unknown">(not specified)</option>
+              <option value="unknown" selected="selected">(not specified)</option>
               <option value="normal">Normal</option>
               <option value="prolonged">Prolonged QTc</option>
               <option value="short">Short QTc</option>
@@ -466,7 +474,10 @@
           <details class="helper">
             <summary>Interpreting QTc</summary>
             <ul>
-              <li><strong>Prolonged QTc:</strong> congenital long QT, many medications (class Ia/Ic/III antiarrhythmics, antipsychotics, antidepressants, antiemetics, quinolones, macrolides), hypocalcemia, hypothyroidism, hypothermia.</li>
+              <li><strong>Prolonged QTc:</strong> congenital long QT, 
+many medications (class Ia/Ic/III antiarrhythmics, antipsychotics, 
+antidepressants, antiemetics, quinolones, macrolides), hypocalcemia, 
+hypothyroidism, hypothermia.</li>
               <li>Hypokalemia itself mainly makes U waves prominent and is dangerous when superimposed on pre-existing QT prolongation.</li>
               <li><strong>Short QTc (&lt; ~350 ms):</strong> hypercalcemia, congenital short QT syndrome.</li>
               <li>Both prolonged and short QT syndromes are associated with increased risk of malignant arrhythmias.</li>
@@ -1040,6 +1051,36 @@
       });
     }
 
+    function setupFoldButtons() {
+      let toggleFoldAll = () => {
+        let summaryElems = document.getElementsByTagName('summary');
+        let detailElems = document.getElementsByTagName('details');
+        let elems = Array.from(summaryElems).concat(Array.from(detailElems));
+        let open = true;
+        for (let elem of elems) {
+          if (elem.open) {
+            open = false
+          }
+          elem.open = true;
+        }
+        for (let elem of elems) {
+          elem.open = open;
+        }
+      }
+      let foldToSubstep = () => {
+        for (let el of document.getElementsByClassName('step')) {
+          el.open = true;
+        }
+        for (let el of document.getElementsByClassName('substep')) {
+          el.open = false;
+        }
+      }
+      let btnToggleFoldAll = document.getElementById('toggle-fold-all');
+      btnToggleFoldAll.addEventListener('click', toggleFoldAll);
+      let btnFoldToSubstep = document.getElementById('fold-to-substep')
+      btnFoldToSubstep.addEventListener('click', foldToSubstep);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       var form = document.getElementById('ekgForm');
       var summaryDiv = document.getElementById('summary');
@@ -1055,7 +1096,10 @@
         var findings = evaluateFindings(data);
         resultsDiv.innerHTML = buildFindingsHTML(findings);
       });
+
+      setupFoldButtons();
     });
   </script>
-</body>
-</html>
+
+
+</body></html>
