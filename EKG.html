@@ -1066,7 +1066,7 @@ hypothyroidism, hypothermia.</li>
         for (let elem of elems) {
           elem.open = open;
         }
-      }
+      };
       let foldToSubstep = () => {
         for (let el of document.getElementsByClassName('step')) {
           el.open = true;
@@ -1074,7 +1074,7 @@ hypothyroidism, hypothermia.</li>
         for (let el of document.getElementsByClassName('substep')) {
           el.open = false;
         }
-      }
+      };
       let btnToggleFoldAll = document.getElementById('toggle-fold-all');
       btnToggleFoldAll.addEventListener('click', toggleFoldAll);
       let btnFoldToSubstep = document.getElementById('fold-to-substep')
