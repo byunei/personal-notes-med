@@ -1055,6 +1055,7 @@ hypothyroidism, hypothermia.</li>
       let toggleFoldAll = () => {
         let summaryElems = Array.from(document.getElementsByTagName('summary'));
         let detailElems = Array.from(document.getElementsByTagName('details'));
+        let elems = summaryElems.concat(detailElems);
         let open = true;
         for (let elem of elems) {
           if (elem.open) {
