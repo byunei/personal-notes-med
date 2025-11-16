@@ -1053,9 +1053,8 @@ hypothyroidism, hypothermia.</li>
 
     function setupFoldButtons() {
       let toggleFoldAll = () => {
-        let summaryElems = document.getElementsByTagName('summary');
-        let detailElems = document.getElementsByTagName('details');
-        let elems = Array.from(summaryElems).concat(Array.from(detailElems));
+        let summaryElems = Array.from(document.getElementsByTagName('summary'));
+        let detailElems = Array.from(document.getElementsByTagName('details'));
         let open = true;
         for (let elem of elems) {
           if (elem.open) {
@@ -1073,6 +1072,9 @@ hypothyroidism, hypothermia.</li>
         }
         for (let el of document.getElementsByClassName('substep')) {
           el.open = false;
+        }
+        for (let el of document.getElementsByClassName('helper')) {
+          el.open = true;
         }
       };
       let btnToggleFoldAll = document.getElementById('toggle-fold-all');
